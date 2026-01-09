@@ -1,10 +1,13 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AppProvider, useApp } from './context/AppContext';
 import { Header } from './components/Layout/Header';
 import { Sidebar } from './components/Layout/Sidebar';
-import { CalendarView } from './components/Calendar/CalendarView';
+import { CalendarView, type CalendarViewRef } from './components/Calendar/CalendarView';
 import { EventModal } from './components/Calendar/EventModal';
 import { TeamMemberList } from './components/TeamMembers/TeamMemberList';
+import { TeamListPage } from './components/TeamMembers/TeamListPage';
+import { TeamMemberPage } from './components/TeamMembers/TeamMemberPage';
 import { useNotifications } from './hooks/useNotifications';
 import { Button } from './components/ui/Button';
 
@@ -14,6 +17,7 @@ function AppContent() {
     state.chores,
     state.teamMembers
   );
+  const calendarRef = useRef<CalendarViewRef>(null);
 
   const [showTeamMembers, setShowTeamMembers] = useState(false);
   const [showEventModal, setShowEventModal] = useState(false);
@@ -39,6 +43,10 @@ function AppContent() {
     setSelectedChoreId(null);
     setSelectedDate(new Date());
     setShowEventModal(true);
+  };
+
+  const handleTodayView = () => {
+    calendarRef.current?.goToToday();
   };
 
   const handleCloseEventModal = () => {
@@ -89,11 +97,12 @@ function AppContent() {
       <Header onOpenTeamMembers={() => setShowTeamMembers(true)} />
 
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar onAddChore={handleAddChore} />
+        <Sidebar onAddChore={handleAddChore} onTodayView={handleTodayView} />
 
         <main className="flex-1 overflow-auto p-6">
           <div className="h-full glass rounded-2xl shadow-xl shadow-black/5 overflow-hidden">
             <CalendarView
+              ref={calendarRef}
               onDateSelect={handleDateSelect}
               onEventClick={handleEventClick}
             />
@@ -116,11 +125,32 @@ function AppContent() {
   );
 }
 
+function TeamLayout({ children }: { children: React.ReactNode }) {
+  const [showTeamMembers, setShowTeamMembers] = useState(false);
+
+  return (
+    <div className="flex flex-col h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
+      <Header onOpenTeamMembers={() => setShowTeamMembers(true)} />
+      {children}
+      <TeamMemberList
+        isOpen={showTeamMembers}
+        onClose={() => setShowTeamMembers(false)}
+      />
+    </div>
+  );
+}
+
 function App() {
   return (
-    <AppProvider>
-      <AppContent />
-    </AppProvider>
+    <BrowserRouter>
+      <AppProvider>
+        <Routes>
+          <Route path="/" element={<AppContent />} />
+          <Route path="/team" element={<TeamLayout><TeamListPage /></TeamLayout>} />
+          <Route path="/team/:memberId" element={<TeamLayout><TeamMemberPage /></TeamLayout>} />
+        </Routes>
+      </AppProvider>
+    </BrowserRouter>
   );
 }
 

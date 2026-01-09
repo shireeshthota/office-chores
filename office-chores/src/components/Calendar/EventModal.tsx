@@ -17,7 +17,7 @@ export function EventModal({
   isOpen,
   onClose,
 }: EventModalProps) {
-  const { state, deleteChore } = useApp();
+  const { state, deleteChore, toggleChoreCompletion } = useApp();
   const [isEditing, setIsEditing] = useState(!choreId);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -30,6 +30,12 @@ export function EventModal({
     if (chore) {
       deleteChore(chore.id);
       onClose();
+    }
+  };
+
+  const handleToggleCompletion = () => {
+    if (chore) {
+      toggleChoreCompletion(chore.id);
     }
   };
 
@@ -61,12 +67,24 @@ export function EventModal({
         ) : chore ? (
           <div className="space-y-5">
             <div className="p-5 rounded-xl bg-gradient-to-br from-indigo-50/50 to-purple-50/50 border border-indigo-100/50">
-              <h3 className="text-xl font-bold text-gray-900 mb-2">
-                {chore.title}
-              </h3>
-              {chore.description && (
-                <p className="text-gray-600">{chore.description}</p>
-              )}
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1">
+                  <h3 className={`text-xl font-bold mb-2 ${chore.isCompleted ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+                    {chore.title}
+                  </h3>
+                  {chore.description && (
+                    <p className={chore.isCompleted ? 'text-gray-400 line-through' : 'text-gray-600'}>{chore.description}</p>
+                  )}
+                </div>
+                {chore.isCompleted && (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                    <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    Completed
+                  </span>
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -116,6 +134,26 @@ export function EventModal({
             )}
 
             <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+              <Button
+                variant="secondary"
+                onClick={handleToggleCompletion}
+              >
+                {chore.isCompleted ? (
+                  <>
+                    <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Mark Incomplete
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Mark Complete
+                  </>
+                )}
+              </Button>
               <Button
                 variant="danger"
                 onClick={() => setShowDeleteConfirm(true)}

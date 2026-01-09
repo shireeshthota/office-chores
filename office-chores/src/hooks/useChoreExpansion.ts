@@ -16,19 +16,25 @@ export function useChoreExpansion(
     for (const chore of chores) {
       const assignee = teamMembers.find((m) => m.id === chore.assigneeId);
       const color = assignee?.color ?? '#6B7280';
+      
+      // Use gray/strikethrough styling for completed chores
+      const eventColor = chore.isCompleted ? '#9CA3AF' : color;
+      const eventTitle = chore.isCompleted ? `✓ ${chore.title}` : chore.title;
 
       if (!chore.isRecurring || !chore.rrule) {
         events.push({
           id: chore.id,
-          title: chore.title,
+          title: eventTitle,
           start: chore.startDate,
           end: chore.endDate,
-          backgroundColor: color,
-          borderColor: color,
+          backgroundColor: eventColor,
+          borderColor: eventColor,
+          textColor: chore.isCompleted ? '#6B7280' : '#FFFFFF',
           extendedProps: {
             choreId: chore.id,
             description: chore.description,
             assignee: assignee?.name,
+            isCompleted: chore.isCompleted,
           },
         });
       } else {
@@ -36,16 +42,18 @@ export function useChoreExpansion(
         occurrences.forEach((date, idx) => {
           events.push({
             id: `${chore.id}-${idx}`,
-            title: chore.title,
+            title: eventTitle,
             start: date,
             allDay: true,
-            backgroundColor: color,
-            borderColor: color,
+            backgroundColor: eventColor,
+            borderColor: eventColor,
+            textColor: chore.isCompleted ? '#6B7280' : '#FFFFFF',
             extendedProps: {
               choreId: chore.id,
               description: chore.description,
               assignee: assignee?.name,
               isRecurring: true,
+              isCompleted: chore.isCompleted,
             },
           });
         });

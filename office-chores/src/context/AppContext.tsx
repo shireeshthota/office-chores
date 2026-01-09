@@ -26,6 +26,21 @@ function appReducer(state: AppState, action: AppAction): AppState {
         chores: state.chores.filter((c) => c.id !== action.payload),
       };
 
+    case 'TOGGLE_CHORE_COMPLETION':
+      return {
+        ...state,
+        chores: state.chores.map((c) =>
+          c.id === action.payload
+            ? {
+                ...c,
+                isCompleted: !c.isCompleted,
+                completedAt: !c.isCompleted ? new Date().toISOString() : undefined,
+                updatedAt: new Date().toISOString(),
+              }
+            : c
+        ),
+      };
+
     case 'ADD_TEAM_MEMBER':
       return { ...state, teamMembers: [...state.teamMembers, action.payload] };
 
@@ -40,9 +55,8 @@ function appReducer(state: AppState, action: AppAction): AppState {
     case 'DELETE_TEAM_MEMBER':
       return {
         ...state,
-        teamMembers: state.teamMembers.filter((m) => m.id !== action.payload),
-        chores: state.chores.map((c) =>
-          c.assigneeId === action.payload ? { ...c, assigneeId: null } : c
+        teamMembers: state.teamMembers.map((m) =>
+          m.id === action.payload ? { ...m, isDeleted: true } : m
         ),
       };
 
@@ -60,13 +74,14 @@ interface AppContextValue {
   addChore: (chore: Omit<Chore, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updateChore: (chore: Chore) => void;
   deleteChore: (id: string) => void;
+  toggleChoreCompletion: (id: string) => void;
   addTeamMember: (member: Omit<TeamMember, 'id'>) => void;
   updateTeamMember: (member: TeamMember) => void;
   deleteTeamMember: (id: string) => void;
   getTeamMember: (id: string | null) => TeamMember | undefined;
 }
 
-const AppContext = createContext<AppContextValue | null>(null);
+export const AppContext = createContext<AppContextValue | null>(null);
 
 function generateId(): string {
   return crypto.randomUUID();
@@ -108,10 +123,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'DELETE_CHORE', payload: id });
   };
 
+  const toggleChoreCompletion = (id: string) => {
+    dispatch({ type: 'TOGGLE_CHORE_COMPLETION', payload: id });
+  };
+
   const addTeamMember = (member: Omit<TeamMember, 'id'>) => {
     dispatch({
       type: 'ADD_TEAM_MEMBER',
-      payload: { ...member, id: generateId() },
+      payload: { ...member, id: generateId(), isDeleted: false },
     });
   };
 
@@ -136,6 +155,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         addChore,
         updateChore,
         deleteChore,
+        toggleChoreCompletion,
         addTeamMember,
         updateTeamMember,
         deleteTeamMember,

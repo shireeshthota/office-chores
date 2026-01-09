@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useImperativeHandle, forwardRef } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -13,11 +13,23 @@ interface CalendarViewProps {
   onEventClick: (choreId: string) => void;
 }
 
-export function CalendarView({ onDateSelect, onEventClick }: CalendarViewProps) {
-  const { state } = useApp();
-  const [dateRange, setDateRange] = useState<DateRange | null>(null);
+export interface CalendarViewRef {
+  goToToday: () => void;
+}
 
-  const events = useChoreExpansion(state.chores, state.teamMembers, dateRange);
+export const CalendarView = forwardRef<CalendarViewRef, CalendarViewProps>(
+  ({ onDateSelect, onEventClick }, ref) => {
+    const { state } = useApp();
+    const [dateRange, setDateRange] = useState<DateRange | null>(null);
+    const calendarRef = useRef<FullCalendar>(null);
+
+    useImperativeHandle(ref, () => ({
+      goToToday: () => {
+        calendarRef.current?.getApi().today();
+      },
+    }));
+
+    const events = useChoreExpansion(state.chores, state.teamMembers, dateRange);
 
   const handleDatesSet = useCallback((arg: DatesSetArg) => {
     setDateRange({ start: arg.start, end: arg.end });
@@ -41,6 +53,7 @@ export function CalendarView({ onDateSelect, onEventClick }: CalendarViewProps) 
   return (
     <div className="h-full p-6">
       <FullCalendar
+        ref={calendarRef}
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
         headerToolbar={{
@@ -64,4 +77,4 @@ export function CalendarView({ onDateSelect, onEventClick }: CalendarViewProps) 
       />
     </div>
   );
-}
+});

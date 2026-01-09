@@ -33,10 +33,40 @@ export function ChoreForm({
   const [title, setTitle] = useState(chore?.title ?? '');
   const [description, setDescription] = useState(chore?.description ?? '');
   const [assigneeId, setAssigneeId] = useState(chore?.assigneeId ?? '');
+  
+  // Extract date and time from existing chore or use defaults
+  const getLocalDateString = (isoString?: string, fallback?: Date) => {
+    if (isoString) {
+      const d = new Date(isoString);
+      return d.getFullYear() + '-' + 
+             String(d.getMonth() + 1).padStart(2, '0') + '-' + 
+             String(d.getDate()).padStart(2, '0');
+    }
+    if (fallback) {
+      return fallback.getFullYear() + '-' + 
+             String(fallback.getMonth() + 1).padStart(2, '0') + '-' + 
+             String(fallback.getDate()).padStart(2, '0');
+    }
+    const now = new Date();
+    return now.getFullYear() + '-' + 
+           String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+           String(now.getDate()).padStart(2, '0');
+  };
+  
+  const getLocalTimeString = (isoString?: string) => {
+    if (isoString) {
+      const d = new Date(isoString);
+      return String(d.getHours()).padStart(2, '0') + ':' + 
+             String(d.getMinutes()).padStart(2, '0');
+    }
+    return '09:00'; // Default to 9 AM
+  };
+  
   const [startDate, setStartDate] = useState(
-    chore?.startDate?.split('T')[0] ??
-      initialDate?.toISOString().split('T')[0] ??
-      new Date().toISOString().split('T')[0]
+    getLocalDateString(chore?.startDate, initialDate)
+  );
+  const [startTime, setStartTime] = useState(
+    getLocalTimeString(chore?.startDate)
   );
   const [isRecurring, setIsRecurring] = useState(chore?.isRecurring ?? false);
   const [recurrence, setRecurrence] = useState<RecurrenceConfig>(
@@ -55,13 +85,18 @@ export function ChoreForm({
       return;
     }
 
+    // Combine date and time into a local datetime
+    const [year, month, day] = startDate.split('-').map(Number);
+    const [hours, minutes] = startTime.split(':').map(Number);
+    const localDateTime = new Date(year, month - 1, day, hours, minutes);
+
     const choreData = {
       title: title.trim(),
       description: description.trim() || undefined,
       assigneeId: assigneeId || null,
-      startDate: new Date(startDate).toISOString(),
+      startDate: localDateTime.toISOString(),
       isRecurring,
-      rrule: isRecurring ? buildRRule(recurrence, new Date(startDate)) : undefined,
+      rrule: isRecurring ? buildRRule(recurrence, localDateTime) : undefined,
       reminderMinutesBefore: reminderMinutes ? parseInt(reminderMinutes) : undefined,
     };
 
@@ -113,12 +148,20 @@ export function ChoreForm({
         options={[{ value: '', label: 'Unassigned' }, ...teamMemberOptions]}
       />
 
-      <Input
-        label="Start Date"
-        type="date"
-        value={startDate}
-        onChange={(e) => setStartDate(e.target.value)}
-      />
+      <div className="grid grid-cols-2 gap-4">
+        <Input
+          label="Start Date"
+          type="date"
+          value={startDate}
+          onChange={(e) => setStartDate(e.target.value)}
+        />
+        <Input
+          label="Start Time"
+          type="time"
+          value={startTime}
+          onChange={(e) => setStartTime(e.target.value)}
+        />
+      </div>
 
       <div className="p-4 rounded-xl bg-gradient-to-r from-indigo-50/50 to-purple-50/50 border border-indigo-100/50">
         <label className="flex items-center gap-3 cursor-pointer">

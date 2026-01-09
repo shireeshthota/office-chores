@@ -3,6 +3,7 @@ export interface TeamMember {
   name: string;
   email?: string;
   color: string;
+  isDeleted: boolean;
 }
 
 export interface Chore {
@@ -15,6 +16,8 @@ export interface Chore {
   isRecurring: boolean;
   rrule?: string;
   reminderMinutesBefore?: number;
+  isCompleted?: boolean;
+  completedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -28,6 +31,7 @@ export type AppAction =
   | { type: 'ADD_CHORE'; payload: Chore }
   | { type: 'UPDATE_CHORE'; payload: Chore }
   | { type: 'DELETE_CHORE'; payload: string }
+  | { type: 'TOGGLE_CHORE_COMPLETION'; payload: string }
   | { type: 'ADD_TEAM_MEMBER'; payload: TeamMember }
   | { type: 'UPDATE_TEAM_MEMBER'; payload: TeamMember }
   | { type: 'DELETE_TEAM_MEMBER'; payload: string }

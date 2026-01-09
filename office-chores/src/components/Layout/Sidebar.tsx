@@ -2,9 +2,10 @@ import { Button } from '../ui/Button';
 
 interface SidebarProps {
   onAddChore: () => void;
+  onTodayView?: () => void;
 }
 
-export function Sidebar({ onAddChore }: SidebarProps) {
+export function Sidebar({ onAddChore, onTodayView }: SidebarProps) {
   return (
     <aside className="w-72 glass border-r border-white/20 p-5 flex flex-col">
       <Button onClick={onAddChore} className="w-full mb-6" size="lg">
@@ -30,7 +31,10 @@ export function Sidebar({ onAddChore }: SidebarProps) {
             Quick Actions
           </h3>
           <div className="space-y-2">
-            <button className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-600 rounded-xl hover:bg-white/60 hover:text-gray-900 transition-all duration-200">
+            <button 
+              onClick={onTodayView}
+              className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-600 rounded-xl hover:bg-white/60 hover:text-gray-900 transition-all duration-200"
+            >
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
                 <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
